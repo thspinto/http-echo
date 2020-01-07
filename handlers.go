@@ -72,6 +72,10 @@ func httpLog(out io.Writer, h http.HandlerFunc) http.HandlerFunc {
 				status, length, r.UserAgent(), dur)
 		}(time.Now())
 
+		if *enableLag {
+			time.Sleep(time.Duration(*lag) * time.Second)
+		}
+
 		h(&mrw, r)
 	}
 }

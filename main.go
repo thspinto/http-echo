@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/hashicorp/http-echo/version"
@@ -17,6 +18,8 @@ var (
 	listenFlag  = flag.String("listen", ":5678", "address and port to listen")
 	textFlag    = flag.String("text", "", "text to put on the webpage")
 	versionFlag = flag.Bool("version", false, "display version information")
+	lag         = flag.Int("lag", 100, "response lag")
+	enableLag   = flag.Bool("enableLag", false, "enable response lag")
 
 	// stdoutW and stderrW are for overriding in test.
 	stdoutW = os.Stdout
@@ -64,13 +67,14 @@ func main() {
 		close(serverCh)
 	}()
 
+	doneCh := make(chan struct{})
 	signalCh := make(chan os.Signal, 1)
-	signal.Notify(signalCh, os.Interrupt)
+	signal.Notify(signalCh, os.Interrupt, syscall.SIGUSR1)
 
+	go handleSignal(doneCh, signalCh)
 	// Wait for interrupt
-	<-signalCh
+	<-doneCh
 
-	log.Printf("[INFO] received interrupt, shutting down...")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -91,5 +95,18 @@ func httpEcho(v string) http.HandlerFunc {
 func httpHealth() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, `{"status":"ok"}`)
+	}
+}
+
+func handleSignal(doneCh chan struct{}, sigCh chan os.Signal) {
+	for {
+		switch <-sigCh {
+		case os.Interrupt:
+			log.Printf("[INFO] received interrupt, shutting down...")
+			doneCh <- struct{}{}
+		case syscall.SIGUSR1:
+			*enableLag = !*enableLag
+			log.Printf("[INFO] received USR!. EnableLag: %s", str(*enableLag))
+		}
 	}
 }
