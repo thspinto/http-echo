@@ -19,8 +19,9 @@ var (
 	listenFlag  = flag.String("listen", ":5678", "address and port to listen")
 	textFlag    = flag.String("text", "", "text to put on the webpage")
 	versionFlag = flag.Bool("version", false, "display version information")
-	lag         = flag.Int("lag", 100, "response lag")
-	enableLag   = flag.Bool("enableLag", false, "enable response lag")
+	lag         = flag.Int("lag", 5, "response lag")
+	enableLag   = flag.Bool("enableLag", true, "enable response lag")
+	statusCode  = flag.Int("statusCode", 200, "the status code to return")
 
 	// stdoutW and stderrW are for overriding in test.
 	stdoutW = os.Stdout

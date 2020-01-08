@@ -74,6 +74,7 @@ func httpLog(out io.Writer, h http.HandlerFunc) http.HandlerFunc {
 
 		if *enableLag {
 			time.Sleep(time.Duration(*lag) * time.Second)
+			mrw.WriteHeader(*statusCode)
 		}
 
 		h(&mrw, r)
