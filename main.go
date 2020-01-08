@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -106,7 +107,7 @@ func handleSignal(doneCh chan struct{}, sigCh chan os.Signal) {
 			doneCh <- struct{}{}
 		case syscall.SIGUSR1:
 			*enableLag = !*enableLag
-			log.Printf("[INFO] received USR!. EnableLag: %s", str(*enableLag))
+			log.Printf("[INFO] received USR!. EnableLag: %s", strconv.FormatBool(*enableLag))
 		}
 	}
 }
