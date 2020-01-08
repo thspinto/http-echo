@@ -60,6 +60,7 @@ func httpLog(out io.Writer, h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var mrw metaResponseWriter
 		mrw.writer = w
+		mrw.WriteHeader(*statusCode)
 
 		defer func(start time.Time) {
 			status := mrw.status
@@ -74,7 +75,6 @@ func httpLog(out io.Writer, h http.HandlerFunc) http.HandlerFunc {
 
 		if *enableLag {
 			time.Sleep(time.Duration(*lag) * time.Second)
-			mrw.WriteHeader(*statusCode)
 		}
 
 		h(&mrw, r)
